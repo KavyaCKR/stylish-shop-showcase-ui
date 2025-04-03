@@ -3,50 +3,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingCart, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useShop } from '@/contexts/ShopContext';
 
 const Wishlist = () => {
-  const { toast } = useToast();
-  
-  // Mock wishlist items (in a real app this would come from state management or API)
-  const wishlistItems = [
-    {
-      id: 1,
-      name: "Premium Wireless Noise-Cancelling Headphones",
-      category: "Electronics",
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1470&auto=format&fit=crop",
-      price: 249.99,
-      rating: 4.8
-    },
-    {
-      id: 3,
-      name: "Organic Cotton T-Shirt",
-      category: "Clothing",
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=1528&auto=format&fit=crop",
-      price: 29.99,
-      rating: 4.5
-    }
-  ];
-
-  const handleRemoveFromWishlist = (productId: number, productName: string) => {
-    toast({
-      title: "Removed from Wishlist",
-      description: `${productName} has been removed from your wishlist`,
-    });
-  };
-
-  const handleAddToCart = (productId: number, productName: string) => {
-    toast({
-      title: "Added to Cart",
-      description: `${productName} has been added to your cart`,
-    });
-  };
+  const { wishlist, removeFromWishlist, addToCart } = useShop();
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">My Wishlist</h1>
       
-      {wishlistItems.length === 0 ? (
+      {wishlist.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-lg text-gray-500 mb-4">Your wishlist is empty</p>
           <Button asChild>
@@ -55,20 +21,20 @@ const Wishlist = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {wishlistItems.map((product) => (
+          {wishlist.map((product) => (
             <div 
               key={product.id} 
               className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
             >
               <Link to={`/products/${product.id}`} className="block aspect-square relative overflow-hidden bg-gray-100">
                 <img 
-                  src={product.image} 
+                  src={product.images[0]} 
                   alt={product.name} 
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-2 left-2">
                   <span className="inline-block bg-white/90 text-xs font-medium py-1 px-2 rounded">
-                    {product.category}
+                    {product.brand}
                   </span>
                 </div>
               </Link>
@@ -97,14 +63,21 @@ const Wishlist = () => {
                 </div>
                 
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-bold">${product.price.toFixed(2)}</span>
+                  <div>
+                    <span className="font-bold">${product.price.toFixed(2)}</span>
+                    {product.discount && (
+                      <span className="text-sm text-gray-500 line-through ml-2">
+                        ${product.discount.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="flex gap-2">
                   <Button 
                     className="flex-1" 
                     variant="default"
-                    onClick={() => handleAddToCart(product.id, product.name)}
+                    onClick={() => addToCart(product)}
                   >
                     <ShoppingCart className="h-4 w-4 mr-2" /> Add to Cart
                   </Button>
@@ -112,7 +85,7 @@ const Wishlist = () => {
                     variant="outline" 
                     size="icon" 
                     className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => handleRemoveFromWishlist(product.id, product.name)}
+                    onClick={() => removeFromWishlist(product.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

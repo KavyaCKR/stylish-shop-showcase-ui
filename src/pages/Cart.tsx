@@ -3,63 +3,21 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Minus, Plus } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useShop } from '@/contexts/ShopContext';
 
 const Cart = () => {
-  const { toast } = useToast();
+  const { cart, removeFromCart, updateCartQuantity, cartTotal } = useShop();
   
-  // Mock cart items (in a real app, this would come from context/redux/API)
-  const [cartItems, setCartItems] = React.useState([
-    {
-      id: 1,
-      name: "Premium Wireless Noise-Cancelling Headphones",
-      category: "Electronics",
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1470&auto=format&fit=crop",
-      price: 249.99,
-      quantity: 1
-    },
-    {
-      id: 2,
-      name: "Smart Fitness Watch",
-      category: "Wearables",
-      image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1528&auto=format&fit=crop",
-      price: 199.99,
-      quantity: 2
-    }
-  ]);
-
-  const handleRemoveFromCart = (productId: number, productName: string) => {
-    setCartItems(cartItems.filter(item => item.id !== productId));
-    toast({
-      title: "Removed from Cart",
-      description: `${productName} has been removed from your cart`,
-    });
-  };
-
-  const handleUpdateQuantity = (productId: number, change: number) => {
-    setCartItems(cartItems.map(item => {
-      if (item.id === productId) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    }));
-  };
-
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const subtotal = calculateSubtotal();
+  // Calculate additional values
   const shipping = 12.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const tax = cartTotal * 0.08;
+  const total = cartTotal + shipping + tax;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Shopping Cart</h1>
       
-      {cartItems.length === 0 ? (
+      {cart.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-lg text-gray-500 mb-4">Your cart is empty</p>
           <Button asChild>
@@ -71,24 +29,24 @@ const Cart = () => {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow overflow-hidden">
               <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Cart Items ({cartItems.reduce((acc, item) => acc + item.quantity, 0)})</h2>
+                <h2 className="text-lg font-semibold">Cart Items ({cart.reduce((acc, item) => acc + item.quantity, 0)})</h2>
               </div>
               <ul className="divide-y">
-                {cartItems.map((item) => (
-                  <li key={item.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                {cart.map((item) => (
+                  <li key={item.product.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="w-full sm:w-24 h-24 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <img src={item.product.images[0]} alt={item.product.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1">
-                      <Link to={`/products/${item.id}`} className="text-lg font-medium hover:text-shop-primary transition-colors">
-                        {item.name}
+                      <Link to={`/products/${item.product.id}`} className="text-lg font-medium hover:text-shop-primary transition-colors">
+                        {item.product.name}
                       </Link>
-                      <p className="text-sm text-gray-500 mb-2">{item.category}</p>
+                      <p className="text-sm text-gray-500 mb-2">{item.product.brand}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center border rounded overflow-hidden">
                           <button 
                             className="px-2 py-1 hover:bg-gray-100"
-                            onClick={() => handleUpdateQuantity(item.id, -1)}
+                            onClick={() => updateCartQuantity(item.product.id, item.quantity - 1)}
                             disabled={item.quantity <= 1}
                           >
                             <Minus className="h-4 w-4" />
@@ -96,7 +54,7 @@ const Cart = () => {
                           <span className="px-4 py-1 border-x">{item.quantity}</span>
                           <button 
                             className="px-2 py-1 hover:bg-gray-100"
-                            onClick={() => handleUpdateQuantity(item.id, 1)}
+                            onClick={() => updateCartQuantity(item.product.id, item.quantity + 1)}
                           >
                             <Plus className="h-4 w-4" />
                           </button>
@@ -105,14 +63,14 @@ const Cart = () => {
                           variant="ghost" 
                           size="sm" 
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => handleRemoveFromCart(item.id, item.name)}
+                          onClick={() => removeFromCart(item.product.id)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" /> Remove
                         </Button>
                       </div>
                     </div>
                     <div className="text-right font-bold">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${(item.product.price * item.quantity).toFixed(2)}
                     </div>
                   </li>
                 ))}
@@ -126,7 +84,7 @@ const Cart = () => {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>${cartTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Shipping</span>

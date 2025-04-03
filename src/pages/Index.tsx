@@ -1,70 +1,34 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Star, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useShop } from '@/contexts/ShopContext';
+import { productData } from '@/data/products';
 
 const Index = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { addToCart, addToWishlist, isInWishlist } = useShop();
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Mock featured products (would come from an API in a real app)
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Premium Wireless Noise-Cancelling Headphones",
-      category: "Electronics",
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1470&auto=format&fit=crop",
-      price: 249.99,
-      rating: 4.8
-    },
-    {
-      id: 2,
-      name: "Smart Fitness Watch",
-      category: "Wearables",
-      image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1528&auto=format&fit=crop",
-      price: 199.99,
-      rating: 4.6
-    },
-    {
-      id: 3,
-      name: "Organic Cotton T-Shirt",
-      category: "Clothing",
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=1528&auto=format&fit=crop",
-      price: 29.99,
-      rating: 4.5
-    },
-    {
-      id: 4,
-      name: "Eco-Friendly Water Bottle",
-      category: "Home",
-      image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=1587&auto=format&fit=crop",
-      price: 24.99,
-      rating: 4.7
-    }
-  ];
+  const featuredProducts = productData.slice(0, 4);
   
-  // Mock categories with respective slugs
+  // Categories with respective slugs
   const categories = [
     { id: 1, name: "Electronics", slug: "electronics", color: "bg-pink-500" },
     { id: 2, name: "Clothing", slug: "clothing", color: "bg-purple-500" },
     { id: 3, name: "Home & Kitchen", slug: "home-kitchen", color: "bg-blue-500" },
-    { id: 4, name: "Beauty", slug: "beauty", color: "bg-green-500" }
+    { id: 4, name: "Beauty & Personal Care", slug: "beauty-personal-care", color: "bg-green-500" }
   ];
 
-  const handleAddToWishlist = (productId: number, productName: string) => {
-    toast({
-      title: "Added to Wishlist",
-      description: `${productName} has been added to your wishlist`,
-    });
-  };
-
-  const handleAddToCart = (productId: number, productName: string) => {
-    toast({
-      title: "Added to Cart",
-      description: `${productName} has been added to your cart`,
-    });
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
   };
 
   return (
@@ -143,25 +107,25 @@ const Index = () => {
               >
                 <Link to={`/products/${product.id}`} className="block aspect-square relative overflow-hidden bg-gray-100">
                   <img 
-                    src={product.image} 
+                    src={product.images[0]} 
                     alt={product.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity" />
                   <div className="absolute top-2 left-2">
                     <span className="inline-block bg-white/90 text-xs font-medium py-1 px-2 rounded">
-                      {product.category}
+                      {product.brand}
                     </span>
                   </div>
                   <button 
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white"
-                    aria-label="Add to wishlist"
+                    className={`absolute top-2 right-2 p-1.5 rounded-full ${isInWishlist(product.id) ? 'bg-red-50 text-red-500' : 'bg-white/80 hover:bg-white'}`}
+                    aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
                     onClick={(e) => {
                       e.preventDefault();
-                      handleAddToWishlist(product.id, product.name);
+                      addToWishlist(product);
                     }}
                   >
-                    <Heart className="h-5 w-5" />
+                    <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500' : ''}`} />
                   </button>
                 </Link>
                 
@@ -189,12 +153,19 @@ const Index = () => {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <span className="font-bold">${product.price.toFixed(2)}</span>
+                    <div>
+                      <span className="font-bold">${product.price.toFixed(2)}</span>
+                      {product.discount && (
+                        <span className="text-sm text-gray-500 line-through ml-2">
+                          ${product.discount.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                     <Button 
                       size="sm" 
                       variant="ghost" 
                       className="h-8 px-3"
-                      onClick={() => handleAddToCart(product.id, product.name)}
+                      onClick={() => addToCart(product)}
                     >
                       <ShoppingCart className="h-4 w-4" />
                     </Button>
@@ -202,6 +173,12 @@ const Index = () => {
                 </div>
               </div>
             ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Button asChild>
+              <Link to="/products">View All Products</Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -214,14 +191,18 @@ const Index = () => {
             Subscribe to our newsletter for exclusive deals and updates on new products.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            // Handle newsletter subscription
+          }} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
             <Input 
               type="email" 
               placeholder="Your email address" 
               className="bg-white"
+              required
             />
             <Button className="bg-black hover:bg-gray-800">Subscribe</Button>
-          </div>
+          </form>
         </div>
       </section>
       

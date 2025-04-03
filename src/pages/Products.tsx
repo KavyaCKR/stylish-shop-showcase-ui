@@ -4,8 +4,11 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { productData } from '@/data/products';
+import { useShop } from '@/contexts/ShopContext';
 
 const Products = () => {
+  const { addToCart, addToWishlist, isInWishlist } = useShop();
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">All Products</h1>
@@ -21,10 +24,14 @@ const Products = () => {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <button 
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white"
-                  aria-label="Add to wishlist"
+                  className={`absolute top-2 right-2 p-1.5 rounded-full ${isInWishlist(product.id) ? 'bg-red-50 text-red-500' : 'bg-white/80 hover:bg-white'}`}
+                  aria-label={isInWishlist(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToWishlist(product);
+                  }}
                 >
-                  <Heart className="h-5 w-5" />
+                  <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500' : ''}`} />
                 </button>
               </div>
             </Link>
@@ -53,8 +60,20 @@ const Products = () => {
               </div>
               
               <div className="flex items-center justify-between">
-                <span className="font-bold">${product.price.toFixed(2)}</span>
-                <Button size="sm" variant="ghost" className="h-8 px-3">
+                <div>
+                  <span className="font-bold">${product.price.toFixed(2)}</span>
+                  {product.discount && (
+                    <span className="text-sm text-gray-500 line-through ml-2">
+                      ${product.discount.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  className="h-8 px-3"
+                  onClick={() => addToCart(product)}
+                >
                   <ShoppingCart className="h-4 w-4" />
                 </Button>
               </div>

@@ -1,4 +1,3 @@
-
 export interface Product {
   id: number;
   name: string;
@@ -276,6 +275,168 @@ export const productData: Product[] = [
       "https://images.unsplash.com/photo-1543470373-e055b73a8f29?auto=format&fit=crop&q=80&w=2071",
       "https://images.unsplash.com/photo-1558365620-2227db21df49?auto=format&fit=crop&q=80&w=2070",
       "https://images.unsplash.com/photo-1577741314755-048d8525d31e?auto=format&fit=crop&q=80&w=1970"
+    ]
+  },
+  {
+    id: 7,
+    name: "Hydrating Facial Serum",
+    brand: "NaturalGlow",
+    price: 42.99,
+    discount: 54.99,
+    rating: 4.7,
+    reviewCount: 128,
+    category: 4,
+    description: "Revitalize your skin with our Hydrating Facial Serum, formulated with hyaluronic acid and vitamin C to deeply moisturize and brighten your complexion. This lightweight, non-greasy serum absorbs quickly, helping to reduce fine lines and improve skin texture while providing long-lasting hydration.",
+    features: [
+      "Contains 2% hyaluronic acid for intense hydration",
+      "Vitamin C helps brighten skin and even tone",
+      "Antioxidant-rich formula fights free radicals",
+      "Oil-free and non-comedogenic",
+      "Suitable for all skin types",
+      "Fragrance-free and paraben-free",
+      "Cruelty-free and vegan"
+    ],
+    specifications: [
+      { name: "Size", value: "1 fl oz (30ml)" },
+      { name: "Key Ingredients", value: "Hyaluronic Acid, Vitamin C, Niacinamide" },
+      { name: "Skin Type", value: "All skin types" },
+      { name: "Usage", value: "Morning and evening" },
+      { name: "pH Level", value: "5.5" }
+    ],
+    colors: [
+      { name: "Original Formula", value: "#F9F9F9", inStock: true }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=2070",
+      "https://images.unsplash.com/photo-1631730359585-5e4becd73f01?auto=format&fit=crop&q=80&w=1925",
+      "https://images.unsplash.com/photo-1595081788554-0b2d25eb1588?auto=format&fit=crop&q=80&w=1965",
+      "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&q=80&w=1780"
+    ],
+    reviews: [
+      {
+        id: 1,
+        user: "Emma Wilson",
+        date: "April 2, 2025",
+        rating: 5,
+        content: "My skin has never looked better! This serum absorbs quickly and doesn't feel sticky at all. I've been using it for three weeks and have noticed my skin looks more plump and hydrated. Even my fine lines seem less noticeable."
+      },
+      {
+        id: 2,
+        user: "James Rodriguez",
+        date: "March 28, 2025",
+        rating: 4,
+        content: "Great serum that really hydrates my dry skin. I use it morning and night, and it's made a significant difference. The only reason I'm not giving 5 stars is because I wish the bottle was a bit larger for the price."
+      }
+    ]
+  },
+  {
+    id: 8,
+    name: "Organic Shampoo & Conditioner Set",
+    brand: "PureEssence",
+    price: 34.99,
+    rating: 4.5,
+    reviewCount: 94,
+    category: 4,
+    description: "Transform your hair care routine with our Organic Shampoo & Conditioner Set. Made with natural ingredients like argan oil, aloe vera, and botanical extracts, this duo gently cleanses and nourishes your hair without harsh chemicals. Perfect for all hair types, it leaves your hair soft, shiny, and manageable.",
+    features: [
+      "Made with 99% organic ingredients",
+      "Free from sulfates, parabens, and silicones",
+      "Argan oil and shea butter for deep conditioning",
+      "Gentle enough for daily use",
+      "Color-safe formula",
+      "Recyclable packaging",
+      "Cruelty-free and vegan"
+    ],
+    specifications: [
+      { name: "Size", value: "8 fl oz (250ml) each" },
+      { name: "Key Ingredients", value: "Argan Oil, Aloe Vera, Coconut Oil" },
+      { name: "Hair Type", value: "All hair types" },
+      { name: "Scent", value: "Lavender & Mint" },
+      { name: "pH Balanced", value: "Yes" }
+    ],
+    colors: [
+      { name: "Lavender & Mint", value: "#E6E6FA", inStock: true },
+      { name: "Coconut & Vanilla", value: "#FFF8DC", inStock: true },
+      { name: "Unscented", value: "#F5F5F5", inStock: true }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1585232351009-aa87416fca20?auto=format&fit=crop&q=80&w=2187",
+      "https://images.unsplash.com/photo-1556229010-aa3f7ff66b24?auto=format&fit=crop&q=80&w=1887",
+      "https://images.unsplash.com/photo-1522664147796-9b267c33a4af?auto=format&fit=crop&q=80&w=1887",
+      "https://images.unsplash.com/photo-1643185539104-3622eb1f0ff6?auto=format&fit=crop&q=80&w=1887"
+    ]
+  },
+  {
+    id: 9,
+    name: "Premium Makeup Brush Set",
+    brand: "ArtistryPro",
+    price: 49.99,
+    discount: 64.99,
+    rating: 4.8,
+    reviewCount: 76,
+    category: 4,
+    description: "Achieve flawless makeup application with our Premium Makeup Brush Set. This 15-piece collection includes precision brushes for foundation, concealer, powder, contouring, and eye makeup. Each brush features ultra-soft synthetic bristles and an ergonomic handle for precise control and seamless blending.",
+    features: [
+      "15-piece comprehensive brush set",
+      "Premium synthetic cruelty-free bristles",
+      "Designed for both beginners and professionals",
+      "Rose gold metal handles with matte finish",
+      "Dense bristles for minimal product waste",
+      "Includes elegant storage case",
+      "Easy to clean and maintain"
+    ],
+    specifications: [
+      { name: "Set Includes", value: "15 premium brushes" },
+      { name: "Bristle Material", value: "Synthetic Taklon" },
+      { name: "Handle Material", value: "Aluminum with matte coating" },
+      { name: "Case Dimensions", value: "8\" x 5\" x 2\"" },
+      { name: "Care", value: "Clean with brush cleaner or mild soap" }
+    ],
+    colors: [
+      { name: "Rose Gold", value: "#B76E79", inStock: true },
+      { name: "Matte Black", value: "#222222", inStock: true }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1522338242992-e1a54906a8da?auto=format&fit=crop&q=80&w=2188",
+      "https://images.unsplash.com/photo-1589710751893-f9a6770ad71b?auto=format&fit=crop&q=80&w=1938",
+      "https://images.unsplash.com/photo-1617220377936-67930e098d8b?auto=format&fit=crop&q=80&w=1887",
+      "https://images.unsplash.com/photo-1596224584716-5e16b15d5187?auto=format&fit=crop&q=80&w=1885"
+    ]
+  },
+  {
+    id: 10,
+    name: "Natural Essential Oil Set",
+    brand: "PureAroma",
+    price: 29.99,
+    discount: 39.99,
+    rating: 4.6,
+    reviewCount: 103,
+    category: 4,
+    description: "Experience the therapeutic benefits of aromatherapy with our Natural Essential Oil Set. This collection of six pure essential oils includes lavender, eucalyptus, peppermint, tea tree, lemon, and sweet orange. Perfect for diffusers, bath products, or DIY skincare recipes, these oils are 100% pure with no fillers or additives.",
+    features: [
+      "Set of 6 pure essential oils (10ml each)",
+      "100% pure, therapeutic grade",
+      "No fillers, additives, or carriers",
+      "Amber glass bottles with droppers",
+      "Sustainable sourcing practices",
+      "Independently tested for purity",
+      "Multiple aromatherapy applications"
+    ],
+    specifications: [
+      { name: "Size", value: "10ml per bottle (6 bottles)" },
+      { name: "Included Oils", value: "Lavender, Eucalyptus, Peppermint, Tea Tree, Lemon, Sweet Orange" },
+      { name: "Extraction Method", value: "Steam distillation" },
+      { name: "Shelf Life", value: "2-3 years" },
+      { name: "Storage", value: "Store in cool, dark place" }
+    ],
+    colors: [
+      { name: "Standard Set", value: "#FFDB58", inStock: true }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&q=80&w=1887",
+      "https://images.unsplash.com/photo-1580870069867-74c57ee1bb07?auto=format&fit=crop&q=80&w=2070",
+      "https://images.unsplash.com/photo-1607968565043-36af90dde238?auto=format&fit=crop&q=80&w=1964",
+      "https://images.unsplash.com/photo-1643706954197-ef9d7d90ca3d?auto=format&fit=crop&q=80&w=1974"
     ]
   }
 ];
