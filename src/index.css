@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +50,10 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ShopWise specific colors */
+    --shop-primary: 267 70% 75%;
+    --shop-secondary: 271 68% 55%;
   }
 
   .dark {
@@ -87,6 +92,10 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* ShopWise specific colors - dark mode */
+    --shop-primary: 267 70% 65%;
+    --shop-secondary: 271 68% 45%;
   }
 }
 
