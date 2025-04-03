@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Heart, Search, User } from 'lucide-react';
+import { ShoppingCart, Heart, Search, User, Home } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 const Navbar = () => {
@@ -18,6 +18,10 @@ const Navbar = () => {
         </div>
         
         <nav className="hidden md:flex items-center gap-6">
+          <Link to="/" className="text-sm font-medium transition-colors hover:text-shop-primary flex items-center gap-1">
+            <Home className="h-4 w-4" />
+            Home
+          </Link>
           <Link to="/products" className="text-sm font-medium transition-colors hover:text-shop-primary">
             Products
           </Link>

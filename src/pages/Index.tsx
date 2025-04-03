@@ -4,15 +4,18 @@ import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Star, Search } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const { toast } = useToast();
+  
   // Mock featured products (would come from an API in a real app)
   const featuredProducts = [
     {
       id: 1,
       name: "Premium Wireless Noise-Cancelling Headphones",
       category: "Electronics",
-      image: "/lovable-uploads/afa82835-5390-483c-9ee6-aea32f9c6647.png",
+      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1470&auto=format&fit=crop",
       price: 249.99,
       rating: 4.8
     },
@@ -20,7 +23,7 @@ const Index = () => {
       id: 2,
       name: "Smart Fitness Watch",
       category: "Wearables",
-      image: "/lovable-uploads/73473fc3-402c-40af-9b3e-4cbfe74ee042.png",
+      image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1528&auto=format&fit=crop",
       price: 199.99,
       rating: 4.6
     },
@@ -28,7 +31,7 @@ const Index = () => {
       id: 3,
       name: "Organic Cotton T-Shirt",
       category: "Clothing",
-      image: "/lovable-uploads/d7a2f581-a44c-4f2e-a7e2-8c73b9977740.png",
+      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=1528&auto=format&fit=crop",
       price: 29.99,
       rating: 4.5
     },
@@ -36,19 +39,33 @@ const Index = () => {
       id: 4,
       name: "Eco-Friendly Water Bottle",
       category: "Home",
-      image: "/lovable-uploads/a01d3669-dbae-4e1b-b896-bfebfce0bd80.png",
+      image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?q=80&w=1587&auto=format&fit=crop",
       price: 24.99,
       rating: 4.7
     }
   ];
   
-  // Mock categories
+  // Mock categories with respective slugs
   const categories = [
-    { id: 1, name: "Electronics", color: "bg-pink-500" },
-    { id: 2, name: "Clothing", color: "bg-purple-500" },
-    { id: 3, name: "Home & Kitchen", color: "bg-blue-500" },
-    { id: 4, name: "Beauty", color: "bg-green-500" }
+    { id: 1, name: "Electronics", slug: "electronics", color: "bg-pink-500" },
+    { id: 2, name: "Clothing", slug: "clothing", color: "bg-purple-500" },
+    { id: 3, name: "Home & Kitchen", slug: "home-kitchen", color: "bg-blue-500" },
+    { id: 4, name: "Beauty", slug: "beauty", color: "bg-green-500" }
   ];
+
+  const handleAddToWishlist = (productId: number, productName: string) => {
+    toast({
+      title: "Added to Wishlist",
+      description: `${productName} has been added to your wishlist`,
+    });
+  };
+
+  const handleAddToCart = (productId: number, productName: string) => {
+    toast({
+      title: "Added to Cart",
+      description: `${productName} has been added to your cart`,
+    });
+  };
 
   return (
     <div>
@@ -83,7 +100,7 @@ const Index = () => {
           
           <div className="flex justify-center">
             <img 
-              src="/lovable-uploads/afa82835-5390-483c-9ee6-aea32f9c6647.png" 
+              src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1470&auto=format&fit=crop" 
               alt="Featured product" 
               className="max-w-full md:max-w-md rounded-lg shadow-xl"
             />
@@ -98,15 +115,16 @@ const Index = () => {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {categories.map((category) => (
-              <div 
+              <Link 
                 key={category.id}
+                to={`/categories/${category.slug}`}
                 className={`${category.color} rounded-xl p-8 text-white text-center transition-transform hover:scale-105`}
               >
                 <div className="flex justify-center items-center h-24 mb-4">
                   <div className="w-16 h-16 bg-white/20 rounded-full"></div>
                 </div>
                 <h3 className="text-xl font-bold">{category.name}</h3>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -138,6 +156,10 @@ const Index = () => {
                   <button 
                     className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white"
                     aria-label="Add to wishlist"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleAddToWishlist(product.id, product.name);
+                    }}
                   >
                     <Heart className="h-5 w-5" />
                   </button>
@@ -168,7 +190,12 @@ const Index = () => {
                   
                   <div className="flex items-center justify-between">
                     <span className="font-bold">${product.price.toFixed(2)}</span>
-                    <Button size="sm" variant="ghost" className="h-8 px-3">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-8 px-3"
+                      onClick={() => handleAddToCart(product.id, product.name)}
+                    >
                       <ShoppingCart className="h-4 w-4" />
                     </Button>
                   </div>

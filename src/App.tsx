@@ -12,6 +12,8 @@ import Categories from "./pages/Categories";
 import CategoryDetail from "./pages/CategoryDetail";
 import Deals from "./pages/Deals";
 import About from "./pages/About";
+import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
@@ -34,6 +36,8 @@ const App = () => (
               <Route path="/categories/:slug" element={<CategoryDetail />} />
               <Route path="/deals" element={<Deals />} />
               <Route path="/about" element={<About />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
