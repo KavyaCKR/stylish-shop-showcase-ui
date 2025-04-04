@@ -52,9 +52,7 @@ const product = {
   ],
   images: [
     "/lovable-uploads/afa82835-5390-483c-9ee6-aea32f9c6647.png",
-    "/lovable-uploads/2abb4fb6-3562-4a40-a5fd-f05195f98165.png",
-    "/lovable-uploads/d7a2f581-a44c-4f2e-a7e2-8c73b9977740.png",
-    "/lovable-uploads/a01d3669-dbae-4e1b-b896-bfebfce0bd80.png"
+
   ],
   relatedProducts: [
     {

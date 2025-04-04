@@ -29,7 +29,7 @@ export const categoryData: Category[] = [
     id: 3,
     name: "Home & Kitchen",
     slug: "home-kitchen",
-    image: "https://images.unsplash.com/photo-1556911220-bda9f7f3fe9b?auto=format&fit=crop&q=80&w=2070",
+    image: "https://media.istockphoto.com/id/1211554164/photo/3d-render-of-home-appliances-collection-set.webp?a=1&b=1&s=612x612&w=0&k=20&c=eAClUK1d_8Qp8NkdaK4SYg8l0u1aByjOhl-nE-3cA_4=",
     description: "Transform your living space with our home and kitchen collection, from elegant dining sets to modern kitchen appliances and cozy decor.",
     productCount: 38
   },

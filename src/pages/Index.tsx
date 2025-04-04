@@ -17,12 +17,36 @@ const Index = () => {
   
   // Categories with respective slugs
   const categories = [
-    { id: 1, name: "Electronics", slug: "electronics", color: "bg-pink-500" },
-    { id: 2, name: "Clothing", slug: "clothing", color: "bg-purple-500" },
-    { id: 3, name: "Home & Kitchen", slug: "home-kitchen", color: "bg-blue-500" },
-    { id: 4, name: "Beauty & Personal Care", slug: "beauty-personal-care", color: "bg-green-500" }
+    {
+      id: 1,
+      name: "Electronics",
+      slug: "electronics",
+      color: "bg-pink-500",
+      image: "https://i.imgur.com/XRaiKkS.jpg",
+    },
+    {
+      id: 2,
+      name: "Clothing",
+      slug: "clothing",
+      color: "bg-purple-500",
+      image: "https://i.imgur.com/5xQzFY4.jpg",
+    },
+    {
+      id: 3,
+      name: "Home & Kitchen",
+      slug: "home-kitchen",
+      color: "bg-blue-500",
+      image: "https://i.imgur.com/Oyb4oGX.jpg",
+    },
+    {
+      id: 4,
+      name: "Beauty & Personal Care",
+      slug: "beauty-personal-care",
+      color: "bg-green-500",
+      image: "https://i.imgur.com/uIEjCxD.jpg",
+    },
   ];
-
+  
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -50,14 +74,6 @@ const Index = () => {
                 asChild
               >
                 <Link to="/products">Shop Now</Link>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10"
-                asChild
-              >
-                <Link to="/categories">Browse Categories</Link>
               </Button>
             </div>
           </div>
