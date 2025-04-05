@@ -39,7 +39,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const OrderStatusBadge = ({ status }) => {
+interface OrderStatusBadgeProps {
+  status: string;
+}
+
+const OrderStatusBadge: React.FC<OrderStatusBadgeProps> = ({ status }) => {
   const statusStyles = {
     'processing': 'bg-yellow-100 text-yellow-800',
     'shipped': 'bg-blue-100 text-blue-800',
@@ -114,7 +118,7 @@ const OrderCard = ({ order, onOpenReview }) => {
           <div>
             <CardTitle className="text-lg flex items-center">
               Order #{order.id}
-              <OrderStatusBadge status={order.status} className="ml-2" />
+              <span className="ml-2"><OrderStatusBadge status={order.status} /></span>
             </CardTitle>
             <CardDescription>
               Placed on {format(new Date(order.created_at), 'MMMM dd, yyyy')}
@@ -332,9 +336,9 @@ const Orders = () => {
   // Sort orders based on selected sorting option
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     if (sortBy === 'date-desc') {
-      return new Date(b.created_at) - new Date(a.created_at);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     } else if (sortBy === 'date-asc') {
-      return new Date(a.created_at) - new Date(b.created_at);
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     } else if (sortBy === 'total-desc') {
       return b.total - a.total;
     } else if (sortBy === 'total-asc') {
