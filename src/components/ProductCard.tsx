@@ -23,16 +23,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         text: `Check out this product: ${product.name}`,
         url: `${window.location.origin}/products/${product.id}`
       })
-      .then(() => toast({
-        title: "Shared successfully",
+      .then(() => toast("Shared successfully", {
         description: "Product has been shared",
       }))
       .catch((error) => console.log('Error sharing', error));
     } else {
       // Fallback for browsers that don't support the Web Share API
       navigator.clipboard.writeText(`${window.location.origin}/products/${product.id}`)
-        .then(() => toast({
-          title: "Link copied",
+        .then(() => toast("Link copied", {
           description: "Product link copied to clipboard",
         }))
         .catch(err => console.error('Could not copy text: ', err));
