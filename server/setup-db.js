@@ -98,6 +98,61 @@ async function setupDatabase() {
       )
     `);
     
+    // Orders table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        subtotal DECIMAL(10, 2) NOT NULL,
+        shipping DECIMAL(10, 2) NOT NULL,
+        tax DECIMAL(10, 2) NOT NULL,
+        total DECIMAL(10, 2) NOT NULL,
+        status ENUM('processing', 'shipped', 'delivered', 'cancelled') NOT NULL DEFAULT 'processing',
+        payment_method VARCHAR(50) NOT NULL,
+        shipping_address VARCHAR(255) NOT NULL,
+        shipping_city VARCHAR(100) NOT NULL,
+        shipping_state VARCHAR(100) NOT NULL,
+        shipping_zip VARCHAR(20) NOT NULL,
+        shipping_country VARCHAR(100) NOT NULL,
+        tracking_number VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        shipped_at TIMESTAMP NULL,
+        delivered_at TIMESTAMP NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    
+    // Order items table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        order_id INT NOT NULL,
+        product_id INT NOT NULL,
+        quantity INT NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id)
+      )
+    `);
+    
+    // Reviews table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        product_id INT NOT NULL,
+        order_id INT NOT NULL,
+        rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+        comment TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        UNIQUE KEY (user_id, product_id, order_id)
+      )
+    `);
+    
     // Sample data - Categories
     console.log('Adding sample categories...');
     await connection.query(`
@@ -125,6 +180,69 @@ async function setupDatabase() {
       INSERT INTO users (name, email, password, avatar) VALUES
       ('Test User', 'test@example.com', '${hashedPassword}', 'https://api.dicebear.com/7.x/initials/svg?seed=TestUser')
     `);
+    
+    // Create a sample order with items for test user
+    console.log('Creating sample orders and reviews...');
+    
+    // Get the user id
+    const [users] = await connection.query(`SELECT id FROM users WHERE email = 'test@example.com'`);
+    const userId = users[0].id;
+    
+    // Create an order
+    const [orderResult] = await connection.query(`
+      INSERT INTO orders (
+        user_id, subtotal, shipping, tax, total, status, payment_method,
+        shipping_address, shipping_city, shipping_state, shipping_zip, shipping_country,
+        created_at, shipped_at, delivered_at
+      ) VALUES (
+        ?, 349.98, 12.99, 28.00, 390.97, 'delivered', 'Credit Card',
+        '123 Main St', 'Anytown', 'CA', '12345', 'USA',
+        DATE_SUB(NOW(), INTERVAL 15 DAY),
+        DATE_SUB(NOW(), INTERVAL 12 DAY),
+        DATE_SUB(NOW(), INTERVAL 10 DAY)
+      )
+    `, [userId]);
+    
+    const orderId = orderResult.insertId;
+    
+    // Add order items
+    await connection.query(`
+      INSERT INTO order_items (order_id, product_id, quantity, price, name) VALUES
+      (?, 1, 1, 149.99, 'Wireless Headphones'),
+      (?, 2, 1, 199.99, 'Smart Watch')
+    `, [orderId, orderId]);
+    
+    // Add a review for one product
+    await connection.query(`
+      INSERT INTO reviews (user_id, product_id, order_id, rating, comment) VALUES
+      (?, 1, ?, 5, 'These headphones are amazing! Great sound quality and the noise cancellation works perfectly. Battery life is also impressive.')
+    `, [userId, orderId]);
+    
+    // Update product rating
+    await connection.query(`
+      UPDATE products SET rating = 5 WHERE id = 1
+    `);
+    
+    // Create a processing order
+    const [orderResult2] = await connection.query(`
+      INSERT INTO orders (
+        user_id, subtotal, shipping, tax, total, status, payment_method,
+        shipping_address, shipping_city, shipping_state, shipping_zip, shipping_country,
+        created_at
+      ) VALUES (
+        ?, 19.99, 12.99, 1.60, 34.58, 'processing', 'Credit Card',
+        '123 Main St', 'Anytown', 'CA', '12345', 'USA',
+        DATE_SUB(NOW(), INTERVAL 2 DAY)
+      )
+    `, [userId]);
+    
+    const orderId2 = orderResult2.insertId;
+    
+    // Add order items
+    await connection.query(`
+      INSERT INTO order_items (order_id, product_id, quantity, price, name) VALUES
+      (?, 3, 1, 19.99, 'Cotton T-Shirt')
+    `, [orderId2]);
     
     console.log('Database setup completed successfully!');
   } catch (error) {

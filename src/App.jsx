@@ -23,6 +23,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import SearchResults from "./pages/SearchResults";
+import Orders from "./pages/Orders";
+import OrderDetail from "./pages/OrderDetail";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -52,6 +54,8 @@ const App = () => (
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/orders" element={<Orders />} />
+                    <Route path="/orders/:id" element={<OrderDetail />} />
                     <Route path="/search" element={<SearchResults />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

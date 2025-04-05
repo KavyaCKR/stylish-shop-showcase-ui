@@ -68,3 +68,35 @@ export const wishlistApi = {
     method: 'DELETE'
   })
 };
+
+// Orders API
+export const orderApi = {
+  getOrders: () => fetchWithAuth('/orders'),
+  placeOrder: (cartItems, shippingDetails) => fetchWithAuth('/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: cartItems, shipping: shippingDetails })
+  }),
+  getOrderById: (orderId) => fetchWithAuth(`/orders/${orderId}`),
+  cancelOrder: (orderId) => fetchWithAuth(`/orders/${orderId}/cancel`, {
+    method: 'POST'
+  })
+};
+
+// Reviews API
+export const reviewApi = {
+  getProductReviews: (productId) => fetchWithAuth(`/products/${productId}/reviews`),
+  addReview: (productId, { rating, comment }) => fetchWithAuth(`/products/${productId}/reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating, comment })
+  }),
+  updateReview: (reviewId, { rating, comment }) => fetchWithAuth(`/reviews/${reviewId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating, comment })
+  }),
+  deleteReview: (reviewId) => fetchWithAuth(`/reviews/${reviewId}`, {
+    method: 'DELETE'
+  })
+};

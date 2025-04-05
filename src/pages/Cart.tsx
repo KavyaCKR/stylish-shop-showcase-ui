@@ -1,17 +1,51 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Trash2, Minus, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, Minus, Plus, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useShop } from '@/contexts/ShopContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useApi } from '@/hooks/useApi';
 
 const Cart = () => {
-  const { cart, removeFromCart, updateCartQuantity, cartTotal } = useShop();
+  const { cart, removeFromCart, updateCartQuantity, cartTotal, clearCart } = useShop();
+  const { isAuthenticated } = useAuth();
+  const { placeOrder } = useApi();
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Calculate additional values
   const shipping = 12.99;
   const tax = cartTotal * 0.08;
   const total = cartTotal + shipping + tax;
+
+  const handleCheckout = async () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=cart');
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    // Simple shipping details for demo purposes
+    const shippingDetails = {
+      address: "123 Main St",
+      city: "Anytown",
+      state: "CA",
+      zipCode: "12345",
+      country: "USA"
+    };
+    
+    try {
+      const orderResult = await placeOrder(cart, shippingDetails);
+      if (orderResult) {
+        clearCart();
+        navigate(`/orders`);
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -101,7 +135,20 @@ const Cart = () => {
                   </div>
                 </div>
               </div>
-              <Button className="w-full">Proceed to Checkout</Button>
+              <Button 
+                className="w-full" 
+                onClick={handleCheckout}
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Proceed to Checkout'
+                )}
+              </Button>
               <Button variant="outline" className="w-full mt-2" asChild>
                 <Link to="/products">Continue Shopping</Link>
               </Button>

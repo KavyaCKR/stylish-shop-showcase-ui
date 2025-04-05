@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
-import { User, LogOut, ShoppingBag, Heart, Settings, Home } from 'lucide-react';
+import { User, LogOut, ShoppingBag, Heart, Settings, Home, Package } from 'lucide-react';
 
 const Profile = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -72,7 +72,7 @@ const Profile = () => {
                     className="w-full justify-start"
                     onClick={() => navigate('/orders')}
                   >
-                    <ShoppingBag className="mr-2 h-4 w-4" /> Orders
+                    <Package className="mr-2 h-4 w-4" /> Orders
                   </Button>
                 </li>
                 <li>
@@ -112,12 +112,12 @@ const Profile = () => {
             <h3 className="text-xl font-semibold mb-4">Recent Orders</h3>
             <div className="text-center py-8 text-gray-500">
               <ShoppingBag className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <p>You haven't placed any orders yet.</p>
+              <p>Check your order history and review products</p>
               <Button 
                 className="mt-4"
-                onClick={() => navigate('/products')}
+                onClick={() => navigate('/orders')}
               >
-                Start Shopping
+                View Orders
               </Button>
             </div>
           </div>
@@ -135,7 +135,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Member Since</p>
-                <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                <p className="font-medium">{new Date(user.created_at || Date.now()).toLocaleDateString()}</p>
               </div>
               <Button 
                 variant="outline"

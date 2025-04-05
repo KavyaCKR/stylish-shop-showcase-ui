@@ -5,7 +5,9 @@ import {
   productApi, 
   categoryApi, 
   cartApi, 
-  wishlistApi 
+  wishlistApi,
+  orderApi,
+  reviewApi
 } from '@/services/api';
 
 export const useApi = () => {
@@ -143,6 +145,105 @@ export const useApi = () => {
     }
   }, [handleApiError, toast]);
 
+  // Orders operations
+  const getOrders = useCallback(async () => {
+    try {
+      return await orderApi.getOrders();
+    } catch (error) {
+      handleApiError(error, 'Failed to fetch your orders');
+      return [];
+    }
+  }, [handleApiError]);
+
+  const placeOrder = useCallback(async (cartItems, shippingDetails) => {
+    try {
+      const result = await orderApi.placeOrder(cartItems, shippingDetails);
+      toast({
+        title: 'Order placed',
+        description: 'Your order has been placed successfully',
+      });
+      return result;
+    } catch (error) {
+      handleApiError(error, 'Failed to place your order');
+      return null;
+    }
+  }, [handleApiError, toast]);
+
+  const getOrderById = useCallback(async (orderId) => {
+    try {
+      return await orderApi.getOrderById(orderId);
+    } catch (error) {
+      handleApiError(error, 'Failed to fetch order details');
+      return null;
+    }
+  }, [handleApiError]);
+
+  const cancelOrder = useCallback(async (orderId) => {
+    try {
+      await orderApi.cancelOrder(orderId);
+      toast({
+        title: 'Order cancelled',
+        description: 'Your order has been cancelled',
+      });
+      return true;
+    } catch (error) {
+      handleApiError(error, 'Failed to cancel your order');
+      return false;
+    }
+  }, [handleApiError, toast]);
+
+  // Reviews operations
+  const getProductReviews = useCallback(async (productId) => {
+    try {
+      return await reviewApi.getProductReviews(productId);
+    } catch (error) {
+      handleApiError(error, 'Failed to fetch product reviews');
+      return [];
+    }
+  }, [handleApiError]);
+
+  const addReview = useCallback(async (productId, reviewData) => {
+    try {
+      await reviewApi.addReview(productId, reviewData);
+      toast({
+        title: 'Review submitted',
+        description: 'Thank you for your review',
+      });
+      return true;
+    } catch (error) {
+      handleApiError(error, 'Failed to submit your review');
+      return false;
+    }
+  }, [handleApiError, toast]);
+
+  const updateReview = useCallback(async (reviewId, reviewData) => {
+    try {
+      await reviewApi.updateReview(reviewId, reviewData);
+      toast({
+        title: 'Review updated',
+        description: 'Your review has been updated',
+      });
+      return true;
+    } catch (error) {
+      handleApiError(error, 'Failed to update your review');
+      return false;
+    }
+  }, [handleApiError, toast]);
+
+  const deleteReview = useCallback(async (reviewId) => {
+    try {
+      await reviewApi.deleteReview(reviewId);
+      toast({
+        title: 'Review deleted',
+        description: 'Your review has been deleted',
+      });
+      return true;
+    } catch (error) {
+      handleApiError(error, 'Failed to delete your review');
+      return false;
+    }
+  }, [handleApiError, toast]);
+
   return {
     // Products
     getProducts,
@@ -161,6 +262,18 @@ export const useApi = () => {
     // Wishlist
     getWishlistItems,
     addToWishlist,
-    removeFromWishlist
+    removeFromWishlist,
+
+    // Orders
+    getOrders,
+    placeOrder,
+    getOrderById,
+    cancelOrder,
+
+    // Reviews
+    getProductReviews,
+    addReview,
+    updateReview,
+    deleteReview
   };
 };
