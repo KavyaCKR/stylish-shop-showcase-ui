@@ -21,10 +21,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronRight, Package, Truck, Calendar, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import ReviewForm, { StarRating } from '@/components/ReviewForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const OrderStatusBadge = ({ status }) => {
   const statusStyles = {
@@ -91,12 +104,162 @@ const ReviewDialog = ({ isOpen, setIsOpen, product, orderId, onSubmitReview }) =
   );
 };
 
+const OrderCard = ({ order, onOpenReview }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <Card className="mb-4">
+      <CardHeader className="pb-2">
+        <div className="flex flex-wrap justify-between items-start gap-2">
+          <div>
+            <CardTitle className="text-lg flex items-center">
+              Order #{order.id}
+              <OrderStatusBadge status={order.status} className="ml-2" />
+            </CardTitle>
+            <CardDescription>
+              Placed on {format(new Date(order.created_at), 'MMMM dd, yyyy')}
+            </CardDescription>
+          </div>
+          <div className="text-right">
+            <div className="font-medium">${order.total.toFixed(2)}</div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={`/orders/${order.id}`}>View Details</Link>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="flex items-center gap-4 text-sm text-gray-500 pb-2">
+          <div className="flex items-center">
+            <Package className="h-4 w-4 mr-1" />
+            <span>{order.items.length} items</span>
+          </div>
+          {order.shipped_at && (
+            <div className="flex items-center">
+              <Truck className="h-4 w-4 mr-1" />
+              <span>Shipped {format(new Date(order.shipped_at), 'MMM dd')}</span>
+            </div>
+          )}
+          {order.delivered_at && (
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>Delivered {format(new Date(order.delivered_at), 'MMM dd')}</span>
+            </div>
+          )}
+        </div>
+        
+        {/* Always show the first 2 items */}
+        <div className="space-y-4 mt-2">
+          {order.items.slice(0, 2).map((item) => (
+            <div key={item.id} className="flex items-start">
+              <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden mr-4">
+                <img 
+                  src={item.product.images[0]} 
+                  alt={item.product.name} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <Link 
+                  to={`/products/${item.product.id}`}
+                  className="font-medium hover:text-primary transition-colors"
+                >
+                  {item.product.name}
+                </Link>
+                <p className="text-sm text-gray-500">
+                  {item.quantity} × ${item.price.toFixed(2)}
+                </p>
+                
+                {item.reviewed ? (
+                  <div className="mt-2 flex items-center">
+                    <StarRating rating={item.review.rating} interactive={false} size="small" />
+                    <span className="ml-2 text-xs text-gray-500">You reviewed this product</span>
+                  </div>
+                ) : order.status === 'delivered' && (
+                  <Button 
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={() => onOpenReview(item.product, order.id)}
+                  >
+                    Write Review
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Show more items if expanded */}
+        {expanded && order.items.length > 2 && (
+          <div className="space-y-4 mt-4 pt-4 border-t">
+            {order.items.slice(2).map((item) => (
+              <div key={item.id} className="flex items-start">
+                <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden mr-4">
+                  <img 
+                    src={item.product.images[0]} 
+                    alt={item.product.name} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Link 
+                    to={`/products/${item.product.id}`}
+                    className="font-medium hover:text-primary transition-colors"
+                  >
+                    {item.product.name}
+                  </Link>
+                  <p className="text-sm text-gray-500">
+                    {item.quantity} × ${item.price.toFixed(2)}
+                  </p>
+                  
+                  {item.reviewed ? (
+                    <div className="mt-2 flex items-center">
+                      <StarRating rating={item.review.rating} interactive={false} size="small" />
+                      <span className="ml-2 text-xs text-gray-500">You reviewed this product</span>
+                    </div>
+                  ) : order.status === 'delivered' && (
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="mt-2"
+                      onClick={() => onOpenReview(item.product, order.id)}
+                    >
+                      Write Review
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {!expanded && order.items.length > 2 && (
+          <div className="text-sm text-gray-500 mt-2">
+            + {order.items.length - 2} more item(s)
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 const Orders = () => {
   const [searchParams] = useSearchParams();
   const reviewProductId = searchParams.get('review');
   
   const { isAuthenticated } = useAuth();
-  const { getOrders, addReview, getProductById } = useApi();
+  const { getOrders, addReview } = useApi();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewDialog, setReviewDialog] = useState({ 
@@ -105,6 +268,7 @@ const Orders = () => {
     orderId: null
   });
   const [activeTab, setActiveTab] = useState('all');
+  const [sortBy, setSortBy] = useState('date-desc');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -160,10 +324,26 @@ const Orders = () => {
     setOrders(updatedOrders || []);
   };
 
+  // Filter orders based on active tab
   const filteredOrders = activeTab === 'all' 
     ? orders 
     : orders.filter(order => order.status.toLowerCase() === activeTab);
 
+  // Sort orders based on selected sorting option
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    if (sortBy === 'date-desc') {
+      return new Date(b.created_at) - new Date(a.created_at);
+    } else if (sortBy === 'date-asc') {
+      return new Date(a.created_at) - new Date(b.created_at);
+    } else if (sortBy === 'total-desc') {
+      return b.total - a.total;
+    } else if (sortBy === 'total-asc') {
+      return a.total - b.total;
+    }
+    return 0;
+  });
+
+  // Get products that need to be reviewed (from delivered orders)
   const productsToReview = orders
     .filter(order => order.status === 'delivered')
     .flatMap(order => 
@@ -188,15 +368,40 @@ const Orders = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">My Orders</h1>
       
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-        <TabsList className="grid grid-cols-5 w-full md:w-auto">
-          <TabsTrigger value="all">All Orders</TabsTrigger>
-          <TabsTrigger value="processing">Processing</TabsTrigger>
-          <TabsTrigger value="shipped">Shipped</TabsTrigger>
-          <TabsTrigger value="delivered">Delivered</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
+          <TabsList className="grid grid-cols-5 w-full md:w-auto">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="processing">Processing</TabsTrigger>
+            <TabsTrigger value="shipped">Shipped</TabsTrigger>
+            <TabsTrigger value="delivered">Delivered</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Sort By
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSortBy('date-desc')}>
+              Date (Newest First)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy('date-asc')}>
+              Date (Oldest First)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy('total-desc')}>
+              Price (High to Low)
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy('total-asc')}>
+              Price (Low to High)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       
       {orders.length === 0 ? (
         <div className="text-center py-12 bg-white shadow-md rounded-lg">
@@ -211,96 +416,28 @@ const Orders = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-4 p-4 border-b">
-                <div>
-                  <p className="text-sm text-gray-500">Order Placed</p>
-                  <p className="font-medium">{format(new Date(order.created_at), 'dd MMM yyyy')}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Total</p>
-                  <p className="font-medium">${order.total.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <OrderStatusBadge status={order.status} />
-                </div>
-                <div className="md:text-right">
-                  <p className="text-sm text-gray-500">Order #{order.id}</p>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    asChild
-                    className="p-0 h-auto"
-                  >
-                    <Link to={`/orders/${order.id}`}>
-                      View Order Details
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="p-4">
-                <div className="space-y-4">
-                  {order.items.slice(0, 2).map((item) => (
-                    <div key={item.id} className="flex items-start">
-                      <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden mr-4">
-                        <img 
-                          src={item.product.images[0]} 
-                          alt={item.product.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <Link 
-                          to={`/products/${item.product.id}`}
-                          className="font-medium hover:text-primary transition-colors"
-                        >
-                          {item.product.name}
-                        </Link>
-                        <p className="text-sm text-gray-500">
-                          {item.quantity} × ${item.price.toFixed(2)}
-                        </p>
-                        
-                        {item.reviewed ? (
-                          <div className="mt-2 flex items-center">
-                            <StarRating rating={item.review.rating} interactive={false} size="small" />
-                            <span className="ml-2 text-xs text-gray-500">You reviewed this product</span>
-                          </div>
-                        ) : order.status === 'delivered' && (
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            className="mt-2"
-                            onClick={() => handleOpenReview(item.product, order.id)}
-                          >
-                            Write Review
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {order.items.length > 2 && (
-                    <div className="text-sm text-gray-500">
-                      + {order.items.length - 2} more item(s)
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+          {sortedOrders.map((order) => (
+            <OrderCard 
+              key={order.id} 
+              order={order}
+              onOpenReview={handleOpenReview}
+            />
           ))}
         </div>
       )}
 
       {productsToReview.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-2xl font-bold mb-6">Products to Review</h2>
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Products to Review</h2>
+            <span className="text-sm text-gray-500">{productsToReview.length} items waiting for your review</span>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {productsToReview.map((item, index) => (
-              <div key={`${item.orderId}-${item.product.id}-${index}`} className="bg-white rounded-lg shadow-md p-4">
-                <div className="flex items-start">
-                  <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden mr-4">
+              <Card key={`${item.orderId}-${item.product.id}-${index}`} className="overflow-hidden hover:shadow-md transition-shadow">
+                <div className="flex p-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded overflow-hidden mr-4 flex-shrink-0">
                     <img 
                       src={item.product.images[0]} 
                       alt={item.product.name} 
@@ -318,7 +455,7 @@ const Orders = () => {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
