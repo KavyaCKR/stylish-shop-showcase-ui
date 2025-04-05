@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ChevronLeft, 
-  Star, 
   Truck, 
   Clock, 
   CheckCircle, 
@@ -16,22 +15,11 @@ import {
   Package,
   Loader2,
 } from 'lucide-react';
+import { StarRating } from '@/components/ReviewForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ReviewForm from '@/components/ReviewForm';
 import { format } from 'date-fns';
-
-const StarRating = ({ rating }) => {
-  return (
-    <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={`h-4 w-4 ${
-            star <= rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-          }`}
-        />
-      ))}
-    </div>
-  );
-};
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 const OrderStatusTimeline = ({ status }) => {
   const statuses = ["Processing", "Shipped", "Delivered"];
@@ -47,6 +35,7 @@ const OrderStatusTimeline = ({ status }) => {
             <div className={`
               w-8 h-8 rounded-full flex items-center justify-center
               ${index <= currentIndex ? 'bg-green-500' : 'bg-gray-200'}
+              ${status.toLowerCase() === "cancelled" && index === currentIndex ? 'bg-red-500' : ''}
             `}>
               {index < currentIndex ? (
                 <CheckCircle className="h-5 w-5 text-white" />
@@ -73,7 +62,7 @@ const OrderStatusTimeline = ({ status }) => {
       
       <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 -z-10">
         <div 
-          className="h-full bg-green-500" 
+          className={`h-full ${status.toLowerCase() === "cancelled" ? 'bg-red-500' : 'bg-green-500'}`}
           style={{ 
             width: `${currentIndex === -1 ? 0 : currentIndex >= statuses.length - 1 ? '100%' : `${(currentIndex / (statuses.length - 1)) * 100}%`}` 
           }}
@@ -85,11 +74,18 @@ const OrderStatusTimeline = ({ status }) => {
 
 const OrderDetail = () => {
   const { id } = useParams();
-  const { getOrderById, cancelOrder } = useApi();
+  const { getOrderById, cancelOrder, addReview } = useApi();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
   const { toast } = useToast();
+  const [reviewDialog, setReviewDialog] = useState({ 
+    open: false, 
+    productId: null,
+    productName: '',
+    productImage: ''
+  });
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
@@ -127,6 +123,47 @@ const OrderDetail = () => {
       }
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleOpenReviewDialog = (productId, productName, productImage) => {
+    setReviewDialog({
+      open: true,
+      productId,
+      productName,
+      productImage
+    });
+  };
+
+  const handleSubmitReview = async (reviewData) => {
+    if (!reviewDialog.productId) return;
+    
+    setIsSubmittingReview(true);
+    try {
+      await addReview(reviewDialog.productId, { ...reviewData, orderId: order.id });
+      
+      // Update local state
+      setOrder({
+        ...order,
+        items: order.items.map(item => 
+          item.product.id === reviewDialog.productId
+            ? { 
+                ...item, 
+                reviewed: true, 
+                review: { rating: reviewData.rating, comment: reviewData.comment } 
+              }
+            : item
+        )
+      });
+      
+      setReviewDialog({ open: false, productId: null, productName: '', productImage: '' });
+      
+      toast({
+        title: "Review submitted",
+        description: "Thank you for your review!",
+      });
+    } finally {
+      setIsSubmittingReview(false);
     }
   };
 
@@ -173,128 +210,133 @@ const OrderDetail = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Order Status</h2>
-              <OrderStatusTimeline status={order.status} />
-              
-              <div className="mt-6">
-                <div className="flex items-center mb-2">
-                  <Calendar className="h-5 w-5 text-gray-400 mr-2" />
-                  <span className="text-sm text-gray-600">
-                    Order Date: {format(new Date(order.created_at), 'MMMM d, yyyy')}
-                  </span>
-                </div>
-                
-                {order.shipped_at && (
-                  <div className="flex items-center mb-2">
-                    <Truck className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">
-                      Shipped on: {format(new Date(order.shipped_at), 'MMMM d, yyyy')}
-                    </span>
-                  </div>
-                )}
-                
-                {order.delivered_at && (
-                  <div className="flex items-center mb-2">
-                    <CheckCircle className="h-5 w-5 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">
-                      Delivered on: {format(new Date(order.delivered_at), 'MMMM d, yyyy')}
-                    </span>
-                  </div>
-                )}
-                
-                {order.status === 'processing' && (
-                  <Button 
-                    variant="destructive"
-                    className="mt-4"
-                    onClick={handleCancelOrder}
-                    disabled={isCancelling}
-                  >
-                    {isCancelling ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Cancelling...
-                      </>
-                    ) : (
-                      'Cancel Order'
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Order Status</CardTitle>
+          <CardDescription>Track your order</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OrderStatusTimeline status={order.status} />
           
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Order Items</h2>
-              
-              <ul className="divide-y">
-                {order.items.map((item) => (
-                  <li key={item.id} className="py-4 flex items-start">
-                    <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden mr-4">
-                      <img 
-                        src={item.product.images[0]} 
-                        alt={item.product.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Link 
-                        to={`/products/${item.product.id}`}
-                        className="font-medium hover:text-primary transition-colors"
-                      >
-                        {item.product.name}
-                      </Link>
-                      <p className="text-sm text-gray-500">
-                        {item.product.brand}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <div>
-                          <span className="text-sm text-gray-500">
-                            Qty: {item.quantity}
-                          </span>
-                        </div>
-                        <span className="font-semibold">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </span>
-                      </div>
-                      
-                      {item.reviewed && (
-                        <div className="mt-2 flex items-center">
-                          <StarRating rating={item.review.rating} />
-                          <span className="ml-2 text-xs text-gray-500">You reviewed this product</span>
-                        </div>
-                      )}
-                      
-                      {!item.reviewed && order.status === 'delivered' && (
-                        <div className="mt-2">
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            asChild
-                          >
-                            <Link to={`/orders?review=${item.product.id}`}>
-                              Write a Review
-                            </Link>
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="flex items-center">
+              <Calendar className="h-5 w-5 text-gray-400 mr-2" />
+              <span className="text-sm">
+                Order Date: {format(new Date(order.created_at), 'MMMM d, yyyy')}
+              </span>
             </div>
+            
+            {order.shipped_at && (
+              <div className="flex items-center">
+                <Truck className="h-5 w-5 text-gray-400 mr-2" />
+                <span className="text-sm">
+                  Shipped on: {format(new Date(order.shipped_at), 'MMMM d, yyyy')}
+                </span>
+              </div>
+            )}
+            
+            {order.delivered_at && (
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-gray-400 mr-2" />
+                <span className="text-sm">
+                  Delivered on: {format(new Date(order.delivered_at), 'MMMM d, yyyy')}
+                </span>
+              </div>
+            )}
           </div>
+        </CardContent>
+        <CardFooter>
+          {order.status === 'processing' && (
+            <Button 
+              variant="destructive"
+              onClick={handleCancelOrder}
+              disabled={isCancelling}
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                'Cancel Order'
+              )}
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Items</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {order.items.map((item) => (
+                  <div key={item.id} className="border-b pb-6 last:border-b-0 last:pb-0">
+                    <div className="flex items-start">
+                      <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden mr-4">
+                        <img 
+                          src={item.product.images[0]} 
+                          alt={item.product.name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <Link 
+                          to={`/products/${item.product.id}`}
+                          className="text-lg font-medium hover:text-primary transition-colors"
+                        >
+                          {item.product.name}
+                        </Link>
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm text-gray-500">
+                            {item.product.brand}
+                          </p>
+                          <div className="text-right">
+                            <p className="font-medium">${item.price.toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                          </div>
+                        </div>
+                        
+                        {item.reviewed ? (
+                          <div className="mt-4 border rounded p-4 bg-gray-50">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-medium text-sm">Your Review</h4>
+                              <StarRating rating={item.review.rating} interactive={false} size="small" />
+                            </div>
+                            <p className="text-sm">{item.review.comment}</p>
+                          </div>
+                        ) : order.status === 'delivered' && (
+                          <Button 
+                            variant="outline" 
+                            className="mt-3"
+                            onClick={() => handleOpenReviewDialog(
+                              item.product.id, 
+                              item.product.name,
+                              item.product.images[0]
+                            )}
+                          >
+                            Write a Product Review
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-              <div className="space-y-2 mb-4">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
                   <span>${order.subtotal.toFixed(2)}</span>
@@ -314,16 +356,18 @@ const OrderDetail = () => {
                   </div>
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="mt-4 text-sm text-gray-500">
                 Payment Method: {order.payment_method}
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
           
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
-              <div className="flex items-start mb-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Shipping Address</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-start">
                 <MapPin className="h-5 w-5 text-gray-400 mr-2 mt-0.5" />
                 <div>
                   <p>{order.shipping.address}</p>
@@ -349,10 +393,38 @@ const OrderDetail = () => {
                   </Button>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
+
+      {/* Review Dialog */}
+      <Dialog open={reviewDialog.open} onOpenChange={(open) => setReviewDialog({...reviewDialog, open})}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Review Product</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+              <img 
+                src={reviewDialog.productImage} 
+                alt={reviewDialog.productName} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h3 className="font-medium text-lg">{reviewDialog.productName}</h3>
+              <p className="text-sm text-gray-500">Order #{id}</p>
+            </div>
+          </div>
+          
+          <ReviewForm 
+            onSubmit={handleSubmitReview}
+            isSubmitting={isSubmittingReview}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
