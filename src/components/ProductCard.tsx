@@ -20,7 +20,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     
     if (navigator.share) {
       navigator.share({
-        title: product.name,
         text: `Check out this product: ${product.name}`,
         url: `${window.location.origin}/products/${product.id}`
       })
