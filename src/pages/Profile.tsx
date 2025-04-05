@@ -31,6 +31,11 @@ const Profile = () => {
     return null; // Will redirect via useEffect
   }
 
+  // Format the date or use a default if created_at is not available
+  const memberSince = user.created_at 
+    ? new Date(user.created_at).toLocaleDateString()
+    : new Date().toLocaleDateString(); // Fallback to current date
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">My Account</h1>
@@ -135,7 +140,7 @@ const Profile = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Member Since</p>
-                <p className="font-medium">{new Date(user.created_at || Date.now()).toLocaleDateString()}</p>
+                <p className="font-medium">{memberSince}</p>
               </div>
               <Button 
                 variant="outline"
