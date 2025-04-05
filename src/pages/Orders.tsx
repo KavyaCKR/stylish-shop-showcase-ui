@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useApi } from '@/hooks/useApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, ChevronDown, ChevronRight, Package, Truck, Calendar, Filter } from 'lucide-react';
+import { Loader2, ChevronDown, ChevronRight, Package, Truck, Calendar, Filter, ShoppingCart } from 'lucide-react';
 import { format } from 'date-fns';
 import ReviewForm, { StarRating } from '@/components/ReviewForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +31,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -38,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 interface OrderStatusBadgeProps {
   status: string;
@@ -108,8 +110,11 @@ const ReviewDialog = ({ isOpen, setIsOpen, product, orderId, onSubmitReview }) =
   );
 };
 
-const OrderCard = ({ order, onOpenReview }) => {
+const OrderCard = ({ order, onOpenReview, onProceedToCheckout }) => {
   const [expanded, setExpanded] = useState(false);
+
+  const hasUnreviewedItems = order.status === 'delivered' && 
+    order.items.some(item => !item.reviewed);
 
   return (
     <Card className="mb-4">
@@ -254,16 +259,35 @@ const OrderCard = ({ order, onOpenReview }) => {
           </div>
         )}
       </CardContent>
+      
+      <CardFooter className={hasUnreviewedItems ? "border-t pt-4" : ""}>
+        {order.status === 'processing' && (
+          <Button 
+            className="w-full"
+            onClick={() => onProceedToCheckout(order)}
+          >
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Proceed to Checkout
+          </Button>
+        )}
+        {hasUnreviewedItems && order.status === 'delivered' && (
+          <div className="w-full text-center">
+            <p className="text-sm text-amber-600 mb-2">Don't forget to review your purchase!</p>
+          </div>
+        )}
+      </CardFooter>
     </Card>
   );
 };
 
 const Orders = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const reviewProductId = searchParams.get('review');
   
   const { isAuthenticated } = useAuth();
-  const { getOrders, addReview } = useApi();
+  const { getOrders, addReview, placeOrder } = useApi();
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewDialog, setReviewDialog] = useState({ 
@@ -273,6 +297,7 @@ const Orders = () => {
   });
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -326,6 +351,37 @@ const Orders = () => {
     // Refresh orders to update review status
     const updatedOrders = await getOrders();
     setOrders(updatedOrders || []);
+
+    toast({
+      title: "Review submitted",
+      description: "Thank you for sharing your feedback!",
+    });
+  };
+
+  const handleProceedToCheckout = async (order) => {
+    setCheckoutLoading(true);
+    try {
+      // Here we'd typically need shipping details, but for now let's just use
+      // the order's existing shipping info and send the items for checkout
+      const result = await placeOrder(order.items, order.shipping || {});
+      
+      if (result) {
+        toast({
+          title: "Order placed successfully",
+          description: "Your order has been placed and is being processed.",
+        });
+        navigate(`/orders/${result.id}`);
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({
+        title: "Checkout failed",
+        description: "There was a problem processing your checkout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   // Filter orders based on active tab
@@ -425,6 +481,7 @@ const Orders = () => {
               key={order.id} 
               order={order}
               onOpenReview={handleOpenReview}
+              onProceedToCheckout={handleProceedToCheckout}
             />
           ))}
         </div>

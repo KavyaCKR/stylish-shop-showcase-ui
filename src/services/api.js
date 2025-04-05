@@ -53,6 +53,11 @@ export const cartApi = {
   }),
   removeFromCart: (itemId) => fetchWithAuth(`/cart/${itemId}`, {
     method: 'DELETE'
+  }),
+  updateQuantity: (itemId, quantity) => fetchWithAuth(`/cart/${itemId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quantity })
   })
 };
 
@@ -80,16 +85,19 @@ export const orderApi = {
   getOrderById: (orderId) => fetchWithAuth(`/orders/${orderId}`),
   cancelOrder: (orderId) => fetchWithAuth(`/orders/${orderId}/cancel`, {
     method: 'POST'
+  }),
+  checkoutOrder: (orderId) => fetchWithAuth(`/orders/${orderId}/checkout`, {
+    method: 'POST'
   })
 };
 
 // Reviews API
 export const reviewApi = {
   getProductReviews: (productId) => fetchWithAuth(`/products/${productId}/reviews`),
-  addReview: (productId, { rating, comment }) => fetchWithAuth(`/products/${productId}/reviews`, {
+  addReview: (productId, { rating, comment, orderId }) => fetchWithAuth(`/products/${productId}/reviews`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ rating, comment })
+    body: JSON.stringify({ rating, comment, order_id: orderId })
   }),
   updateReview: (reviewId, { rating, comment }) => fetchWithAuth(`/reviews/${reviewId}`, {
     method: 'PUT',
@@ -98,5 +106,14 @@ export const reviewApi = {
   }),
   deleteReview: (reviewId) => fetchWithAuth(`/reviews/${reviewId}`, {
     method: 'DELETE'
+  })
+};
+
+// Checkout API
+export const checkoutApi = {
+  createCheckout: (items, shippingDetails) => fetchWithAuth('/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items, shipping: shippingDetails })
   })
 };
