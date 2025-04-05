@@ -6,25 +6,37 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { register } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please check your passwords and try again",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
+      const success = await register(name, email, password);
       
       if (success) {
         toast({
-          title: "Login successful",
-          description: "Welcome back!",
+          title: "Registration successful",
+          description: "Welcome to our store!",
         });
         navigate('/profile');
       }
@@ -41,10 +53,23 @@ const Login = () => {
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-md">
-      <h1 className="text-3xl font-bold text-center mb-8">Sign In</h1>
+      <h1 className="text-3xl font-bold text-center mb-8">Create Account</h1>
       
       <div className="bg-white p-8 rounded-lg shadow-md">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium mb-1">
+              Full Name
+            </label>
+            <Input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              required
+            />
+          </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">
               Email
@@ -67,7 +92,20 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder="Create a password"
+              required
+            />
+          </div>
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1">
+              Confirm Password
+            </label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your password"
               required
             />
           </div>
@@ -76,22 +114,16 @@ const Login = () => {
             className="w-full" 
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign In"}
+            {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
         
         <div className="mt-6 text-center text-sm">
           <p className="text-gray-500">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline">
-              Create Account
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Sign In
             </Link>
-          </p>
-        </div>
-        
-        <div className="mt-4 text-center text-xs text-gray-500">
-          <p>
-            Demo account: test@example.com / password123
           </p>
         </div>
       </div>
@@ -99,4 +131,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

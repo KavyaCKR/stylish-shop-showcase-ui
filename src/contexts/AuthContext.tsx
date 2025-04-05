@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 type User = {
   id: number;
@@ -13,49 +14,97 @@ type AuthContextType = {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  register: (name: string, email: string, password: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const API_URL = 'http://localhost:5000/api';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
-  // Check for existing session on mount
+  // Check for existing token on mount
   useEffect(() => {
+    const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    
+    if (token && savedUser) {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // For demo purposes, accept any non-empty inputs
-    if (email && password) {
-      const newUser = {
-        id: 1,
-        name: email.split('@')[0],
-        email,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${email.split('@')[0]}`
-      };
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Login failed');
+        return false;
+      }
       
-      setUser(newUser);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      setUser(data.user);
       setIsAuthenticated(true);
-      localStorage.setItem('user', JSON.stringify(newUser));
       return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Something went wrong. Please try again.');
+      return false;
     }
-    return false;
+  };
+
+  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Registration failed');
+        return false;
+      }
+      
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error('Something went wrong. Please try again.');
+      return false;
+    }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );

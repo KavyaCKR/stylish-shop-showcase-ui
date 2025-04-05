@@ -20,6 +20,7 @@ import Footer from "./components/Footer";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ShopProvider } from "./contexts/ShopContext";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import SearchResults from "./pages/SearchResults";
 
@@ -49,6 +50,7 @@ const App = () => (
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/wishlist" element={<Wishlist />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/search" element={<SearchResults />} />
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
