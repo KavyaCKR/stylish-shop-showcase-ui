@@ -1,16 +1,13 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Minus, Plus, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useShop } from '@/contexts/ShopContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useApi } from '@/hooks/useApi';
 
 const Cart = () => {
   const { cart, removeFromCart, updateCartQuantity, cartTotal, clearCart } = useShop();
   const { isAuthenticated } = useAuth();
-  const { placeOrder } = useApi();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -19,7 +16,7 @@ const Cart = () => {
   const tax = cartTotal * 0.08;
   const total = cartTotal + shipping + tax;
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!isAuthenticated) {
       navigate('/login?redirect=cart');
       return;
@@ -27,21 +24,19 @@ const Cart = () => {
     
     setIsProcessing(true);
     
-    // Simple shipping details for demo purposes
-    const shippingDetails = {
-      address: "123 Main St",
-      city: "Anytown",
-      state: "CA",
-      zipCode: "12345",
-      country: "USA"
-    };
-    
     try {
-      const orderResult = await placeOrder(cart, shippingDetails);
-      if (orderResult) {
-        clearCart();
-        navigate(`/orders`);
-      }
+      // Navigate to checkout page with cart items
+      navigate('/checkout', { 
+        state: { 
+          orderDetails: {
+            items: cart,
+            subtotal: cartTotal,
+            shipping: shipping,
+            tax: tax,
+            total: total
+          } 
+        } 
+      });
     } finally {
       setIsProcessing(false);
     }

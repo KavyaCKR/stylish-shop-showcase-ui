@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useApi } from '@/hooks/useApi';
@@ -23,7 +22,6 @@ import { Star, Loader2, ChevronDown, ChevronUp, Package, List } from 'lucide-rea
 import { useToast } from '@/hooks/use-toast';
 import ReviewForm, { StarRating } from '@/components/ReviewForm';
 
-// Order Status Badge component
 const OrderStatusBadge = ({ status }: { status: string }) => {
   const statusStyles = {
     'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -42,7 +40,6 @@ const OrderStatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// Order Item component
 const OrderItem = ({ item }: { item: any }) => {
   return (
     <div className="flex items-start space-x-4 py-3 border-b last:border-0">
@@ -72,7 +69,6 @@ const OrderItem = ({ item }: { item: any }) => {
   );
 };
 
-// Order Card component
 const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: { 
   order: any, 
   onOpenReview: (product: any, orderId: number) => void,
@@ -87,7 +83,6 @@ const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: {
     setIsLoading(false);
   };
 
-  // Format date
   const orderDate = new Date(order.created_at).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -133,7 +128,6 @@ const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: {
               <OrderItem key={`${order.id}-item-${index}`} item={item} />
             ))}
             
-            {/* Shipping address if available */}
             {order.shipping && (
               <div className="mt-4 pt-4 border-t">
                 <h4 className="text-sm font-medium mb-2">Shipping Address</h4>
@@ -153,7 +147,6 @@ const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: {
       </CardContent>
       <CardFooter className="border-t flex flex-wrap gap-2 pt-4 justify-between">
         <div>
-          {/* Order actions based on status */}
           {order.status === 'pending' && (
             <Button
               variant="outline"
@@ -177,7 +170,6 @@ const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: {
           </Link>
         </div>
         
-        {/* Review buttons for delivered items that haven't been reviewed */}
         {order.status === 'delivered' && (
           <div className="flex flex-wrap gap-2">
             {order.items
@@ -198,7 +190,6 @@ const OrderCard = ({ order, onOpenReview, onProceedToCheckout }: {
   );
 };
 
-// Products to Review card component
 const ProductsToReviewCard = ({ item }: { item: any }) => {
   const navigate = useNavigate();
   
@@ -227,7 +218,6 @@ const ProductsToReviewCard = ({ item }: { item: any }) => {
   );
 };
 
-// Dialog for product reviews
 const ReviewDialog = ({ 
   isOpen, 
   setIsOpen, 
@@ -295,7 +285,6 @@ const ReviewDialog = ({
   );
 };
 
-// Tabs Component
 const TabsComponent = ({ activeTab, onTabChange }: { activeTab: string, onTabChange: (tab: string) => void }) => {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -310,7 +299,6 @@ const TabsComponent = ({ activeTab, onTabChange }: { activeTab: string, onTabCha
   );
 };
 
-// Dropdown Menu Component
 const DropdownMenuComponent = ({ sortBy, onSortChange }: { sortBy: string, onSortChange: (sort: string) => void }) => {
   return (
     <div className="flex items-center gap-2">
@@ -345,7 +333,6 @@ const Orders = () => {
   const [sortBy, setSortBy] = useState('date-desc');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-  // Fetch orders on mount and when authentication state changes
   useEffect(() => {
     const fetchOrders = async () => {
       if (!isAuthenticated) {
@@ -359,7 +346,6 @@ const Orders = () => {
         setOrders(data || []);
 
         if (reviewProductId) {
-          // Open review dialog if "review" query param exists
           const productId = parseInt(reviewProductId);
           const orderWithProduct = data.find((order: any) =>
             order.items.some((item: any) => item.product.id === productId)
@@ -391,12 +377,10 @@ const Orders = () => {
     fetchOrders();
   }, [isAuthenticated, getOrders, reviewProductId, navigate, toast]);
 
-  // Handle review submission
   const handleSubmitReview = async (productId: number, reviewData: any, orderId: number) => {
     try {
       await addReview(productId, { ...reviewData, orderId });
 
-      // Refresh orders to update review status
       const updatedOrders = await getOrders();
       setOrders(updatedOrders || []);
 
@@ -413,29 +397,10 @@ const Orders = () => {
     }
   };
 
-  // Handle checkout process
   const handleProceedToCheckout = async (order: any) => {
     setCheckoutLoading(true);
     try {
-      // Use checkoutOrder from the API if available, otherwise fallback to placeOrder
-      const checkoutFn = checkoutOrder || ((orderId: number) => placeOrder(order.items, order.shipping || {}));
-      const result = await checkoutFn(order.id);
-      
-      if (result) {
-        toast({
-          title: 'Order processed successfully',
-          description: 'Your order has been placed and is being processed.',
-        });
-        
-        // Refresh orders data
-        const updatedOrders = await getOrders();
-        setOrders(updatedOrders || []);
-        
-        // Navigate to order details if available
-        if (result.id) {
-          navigate(`/orders/${result.id}`);
-        }
-      }
+      navigate('/checkout', { state: { orderDetails: order } });
     } catch (error) {
       console.error('Checkout error:', error);
       toast({
@@ -448,7 +413,6 @@ const Orders = () => {
     }
   };
 
-  // Filter and sort orders based on active tab and sorting option
   const filteredOrders =
     activeTab === 'all' ? orders : orders.filter(order => order.status.toLowerCase() === activeTab);
   
@@ -460,7 +424,6 @@ const Orders = () => {
     return 0;
   });
 
-  // Get products waiting for review
   const productsToReview = orders
     .filter(order => order.status === 'delivered')
     .flatMap(order =>
@@ -480,13 +443,11 @@ const Orders = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">My Orders</h1>
 
-      {/* Tabs and Sorting */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <TabsComponent activeTab={activeTab} onTabChange={setActiveTab} />
         <DropdownMenuComponent sortBy={sortBy} onSortChange={setSortBy} />
       </div>
 
-      {/* Orders List */}
       {orders.length === 0 ? (
         <div className="text-center py-12 bg-white shadow-md rounded-lg">
           <p className="text-lg text-gray-500 mb-4">You haven't placed any orders yet</p>
@@ -515,7 +476,6 @@ const Orders = () => {
         </div>
       )}
 
-      {/* Products to Review */}
       {productsToReview.length > 0 && (
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Products to Review</h2>
@@ -527,7 +487,6 @@ const Orders = () => {
         </div>
       )}
 
-      {/* Review Dialog */}
       <ReviewDialog
         isOpen={reviewDialog.open}
         setIsOpen={(open) => setReviewDialog({ ...reviewDialog, open })}

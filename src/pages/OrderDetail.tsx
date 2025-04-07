@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useApi } from '@/hooks/useApi';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -74,6 +73,7 @@ const OrderStatusTimeline = ({ status }) => {
 
 const OrderDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { getOrderById, cancelOrder, addReview } = useApi();
   const [order, setOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,7 +110,6 @@ const OrderDetail = () => {
     try {
       const success = await cancelOrder(order.id);
       if (success) {
-        // Update local state
         setOrder({
           ...order,
           status: 'cancelled'
@@ -124,6 +123,11 @@ const OrderDetail = () => {
     } finally {
       setIsCancelling(false);
     }
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!order) return;
+    navigate('/checkout', { state: { orderDetails: order } });
   };
 
   const handleOpenReviewDialog = (productId, productName, productImage) => {
@@ -142,7 +146,6 @@ const OrderDetail = () => {
     try {
       await addReview(reviewDialog.productId, { ...reviewData, orderId: order.id });
       
-      // Update local state
       setOrder({
         ...order,
         items: order.items.map(item => 
@@ -260,6 +263,14 @@ const OrderDetail = () => {
               ) : (
                 'Cancel Order'
               )}
+            </Button>
+          )}
+          {order.status === 'pending' && (
+            <Button 
+              className="ml-auto"
+              onClick={handleProceedToCheckout}
+            >
+              Proceed to Checkout
             </Button>
           )}
         </CardFooter>
@@ -398,7 +409,6 @@ const OrderDetail = () => {
         </div>
       </div>
 
-      {/* Review Dialog */}
       <Dialog open={reviewDialog.open} onOpenChange={(open) => setReviewDialog({...reviewDialog, open})}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
