@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Search, User, Home, Menu, X, LogOut, UserCircle } from 'lucide-react';
+import { ShoppingCart, Heart, Search, User, Home, Menu, X, LogOut, UserCircle, Package } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,6 +68,10 @@ const Navbar = () => {
           <Link to="/deals" className="text-sm font-medium transition-colors hover:text-shop-primary">
             Deals
           </Link>
+          <Link to="/orders" className="text-sm font-medium transition-colors hover:text-shop-primary">
+            <Package className="h-4 w-4 mr-1 inline-block" />
+            Orders
+          </Link>
           <Link to="/about" className="text-sm font-medium transition-colors hover:text-shop-primary">
             About
           </Link>
@@ -105,6 +109,14 @@ const Navbar = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Deals
+              </Link>
+              <Link 
+                to="/orders" 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Package className="h-5 w-5" />
+                Orders
               </Link>
               <Link 
                 to="/about" 
@@ -199,10 +211,16 @@ const Navbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/orders" className="w-full cursor-pointer">Orders</Link>
+                  <Link to="/orders" className="w-full cursor-pointer">
+                    <Package className="mr-2 h-4 w-4" />
+                    Orders
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/wishlist" className="w-full cursor-pointer">Wishlist</Link>
+                  <Link to="/wishlist" className="w-full cursor-pointer">
+                    <Heart className="mr-2 h-4 w-4" />
+                    Wishlist
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
