@@ -7,7 +7,8 @@ import {
   cartApi, 
   wishlistApi,
   orderApi,
-  reviewApi
+  reviewApi,
+  checkoutApi
 } from '@/services/api';
 
 export const useApi = () => {
@@ -192,6 +193,21 @@ export const useApi = () => {
     }
   }, [handleApiError, toast]);
 
+  // New function to handle checkout for existing orders
+  const checkoutOrder = useCallback(async (orderId) => {
+    try {
+      const result = await orderApi.checkoutOrder(orderId);
+      toast({
+        title: 'Checkout successful',
+        description: 'Your order has been processed successfully',
+      });
+      return result;
+    } catch (error) {
+      handleApiError(error, 'Failed to process your checkout');
+      return null;
+    }
+  }, [handleApiError, toast]);
+
   // Reviews operations
   const getProductReviews = useCallback(async (productId) => {
     try {
@@ -244,6 +260,21 @@ export const useApi = () => {
     }
   }, [handleApiError, toast]);
 
+  // New checkout operations for direct checkout
+  const createCheckout = useCallback(async (items, shippingDetails) => {
+    try {
+      const result = await checkoutApi.createCheckout(items, shippingDetails);
+      toast({
+        title: 'Checkout created',
+        description: 'Your checkout has been created successfully',
+      });
+      return result;
+    } catch (error) {
+      handleApiError(error, 'Failed to create checkout');
+      return null;
+    }
+  }, [handleApiError, toast]);
+
   return {
     // Products
     getProducts,
@@ -269,11 +300,15 @@ export const useApi = () => {
     placeOrder,
     getOrderById,
     cancelOrder,
+    checkoutOrder,
 
     // Reviews
     getProductReviews,
     addReview,
     updateReview,
-    deleteReview
+    deleteReview,
+    
+    // Checkout
+    createCheckout
   };
 };

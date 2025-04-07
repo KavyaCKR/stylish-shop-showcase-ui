@@ -48,7 +48,7 @@ const OrderItem = ({ item }: { item: any }) => {
     <div className="flex items-start space-x-4 py-3 border-b last:border-0">
       <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
         <img
-          src={item.product.image_url || '/placeholder.svg'}
+          src={item.product.images?.[0] || '/placeholder.svg'}
           alt={item.product.name}
           className="h-full w-full object-cover object-center"
         />
@@ -206,7 +206,7 @@ const ProductsToReviewCard = ({ item }: { item: any }) => {
     <Card className="overflow-hidden">
       <div className="aspect-square w-full overflow-hidden">
         <img
-          src={item.product.image_url || '/placeholder.svg'}
+          src={item.product.images?.[0] || '/placeholder.svg'}
           alt={item.product.name}
           className="h-full w-full object-cover transition-transform hover:scale-105"
         />
@@ -274,7 +274,7 @@ const ReviewDialog = ({
           <div className="flex items-center gap-4 mb-4">
             <div className="h-16 w-16 overflow-hidden rounded border">
               <img
-                src={product.image_url || '/placeholder.svg'}
+                src={product.images?.[0] || '/placeholder.svg'}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />
@@ -337,18 +337,21 @@ const Orders = () => {
   const reviewProductId = searchParams.get('review');
 
   const { isAuthenticated } = useAuth();
-  const { getOrders, addReview, placeOrder } = useApi();
-  const [orders, setOrders] = useState([]);
+  const { getOrders, addReview, placeOrder, checkoutOrder } = useApi();
+  const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [reviewDialog, setReviewDialog] = useState({ open: false, product: null, orderId: null });
   const [activeTab, setActiveTab] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
-  // Fetch orders on mount
+  // Fetch orders on mount and when authentication state changes
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated) {
+        navigate('/login');
+        return;
+      }
 
       setIsLoading(true);
       try {
@@ -358,50 +361,80 @@ const Orders = () => {
         if (reviewProductId) {
           // Open review dialog if "review" query param exists
           const productId = parseInt(reviewProductId);
-          const orderWithProduct = data.find(order =>
-            order.items.some(item => item.product.id === productId)
+          const orderWithProduct = data.find((order: any) =>
+            order.items.some((item: any) => item.product.id === productId)
           );
 
           if (orderWithProduct) {
-            const item = orderWithProduct.items.find(item => item.product.id === productId);
+            const item = orderWithProduct.items.find((item: any) => item.product.id === productId);
             if (item && orderWithProduct.status === 'delivered') {
-              setReviewDialog({ open: true, product: item.product, orderId: orderWithProduct.id });
+              setReviewDialog({ 
+                open: true, 
+                product: item.product, 
+                orderId: orderWithProduct.id 
+              });
             }
           }
         }
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load your orders. Please try again later.",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchOrders();
-  }, [isAuthenticated, getOrders, reviewProductId]);
+  }, [isAuthenticated, getOrders, reviewProductId, navigate, toast]);
 
   // Handle review submission
-  const handleSubmitReview = async (productId, reviewData, orderId) => {
-    await addReview(productId, { ...reviewData, orderId });
+  const handleSubmitReview = async (productId: number, reviewData: any, orderId: number) => {
+    try {
+      await addReview(productId, { ...reviewData, orderId });
 
-    // Refresh orders to update review status
-    const updatedOrders = await getOrders();
-    setOrders(updatedOrders || []);
+      // Refresh orders to update review status
+      const updatedOrders = await getOrders();
+      setOrders(updatedOrders || []);
 
-    toast({
-      title: 'Review submitted',
-      description: 'Thank you for sharing your feedback!',
-    });
+      toast({
+        title: 'Review submitted',
+        description: 'Thank you for sharing your feedback!',
+      });
+    } catch (error) {
+      toast({
+        title: 'Review submission failed',
+        description: 'There was an error submitting your review. Please try again.',
+        variant: 'destructive'
+      });
+    }
   };
 
   // Handle checkout process
-  const handleProceedToCheckout = async (order) => {
+  const handleProceedToCheckout = async (order: any) => {
     setCheckoutLoading(true);
     try {
-      const result = await placeOrder(order.items, order.shipping || {});
+      // Use checkoutOrder from the API if available, otherwise fallback to placeOrder
+      const checkoutFn = checkoutOrder || ((orderId: number) => placeOrder(order.items, order.shipping || {}));
+      const result = await checkoutFn(order.id);
+      
       if (result) {
         toast({
-          title: 'Order placed successfully',
+          title: 'Order processed successfully',
           description: 'Your order has been placed and is being processed.',
         });
-        navigate(`/orders/${result.id}`);
+        
+        // Refresh orders data
+        const updatedOrders = await getOrders();
+        setOrders(updatedOrders || []);
+        
+        // Navigate to order details if available
+        if (result.id) {
+          navigate(`/orders/${result.id}`);
+        }
       }
     } catch (error) {
       console.error('Checkout error:', error);
@@ -418,6 +451,7 @@ const Orders = () => {
   // Filter and sort orders based on active tab and sorting option
   const filteredOrders =
     activeTab === 'all' ? orders : orders.filter(order => order.status.toLowerCase() === activeTab);
+  
   const sortedOrders = [...filteredOrders].sort((a, b) => {
     if (sortBy === 'date-desc') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     if (sortBy === 'date-asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
@@ -430,7 +464,7 @@ const Orders = () => {
   const productsToReview = orders
     .filter(order => order.status === 'delivered')
     .flatMap(order =>
-      order.items.filter(item => !item.reviewed).map(item => ({ ...item, orderId: order.id }))
+      order.items.filter((item: any) => !item.reviewed).map((item: any) => ({ ...item, orderId: order.id }))
     );
 
   if (isLoading) {
@@ -466,11 +500,15 @@ const Orders = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {sortedOrders.map(order => (
+          {sortedOrders.map((order: any) => (
             <OrderCard
               key={order.id}
               order={order}
-              onOpenReview={(product, orderId) => setReviewDialog({ open: true, product, orderId })}
+              onOpenReview={(product, orderId) => setReviewDialog({ 
+                open: true, 
+                product, 
+                orderId 
+              })}
               onProceedToCheckout={handleProceedToCheckout}
             />
           ))}
@@ -482,7 +520,7 @@ const Orders = () => {
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Products to Review</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {productsToReview.map((item, index) => (
+            {productsToReview.map((item: any, index: number) => (
               <ProductsToReviewCard key={`${item.orderId}-${item.product.id}-${index}`} item={item} />
             ))}
           </div>
