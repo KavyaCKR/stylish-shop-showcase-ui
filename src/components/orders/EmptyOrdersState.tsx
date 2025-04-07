@@ -12,7 +12,7 @@ const EmptyOrdersState = ({ isFilterActive, activeTab }: EmptyOrdersStateProps) 
   if (isFilterActive) {
     return (
       <div className="text-center py-12 bg-white shadow-md rounded-lg">
-        <p className="text-lg text-gray-500 mb-4">No {activeTab} orders found</p>
+        <p className="text-lg text-gray-500 mb-4">No {activeTab?.toLowerCase()} orders found</p>
       </div>
     );
   }
